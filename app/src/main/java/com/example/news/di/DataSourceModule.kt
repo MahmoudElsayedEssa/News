@@ -1,9 +1,9 @@
 package com.example.souhoolatask.di
 
-import com.example.souhoolatask.data.local.dataSource.NewsLocalDataSourceImpl
-import com.example.souhoolatask.data.remote.datasource.NewsRemoteDataSourceImpl
-import com.example.souhoolatask.data.repository.datasources.NewsLocalDataSource
-import com.example.souhoolatask.data.repository.datasources.NewsRemoteDataSource
+import com.example.news.data.local.dataSource.NewsLocalDataSourceImpl
+import com.example.news.data.remote.datasource.NewsRemoteDataSourceImpl
+import com.example.news.data.repository.datasources.NewsLocalDataSource
+import com.example.news.data.repository.datasources.NewsRemoteDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

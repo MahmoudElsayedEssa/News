@@ -1,16 +1,15 @@
-package com.example.souhoolatask.data.repository
+package com.example.news.data.repository
 
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.example.souhoolatask.data.local.database.NewsDatabase
-import com.example.souhoolatask.data.local.mappers.EntityMapper
-import com.example.souhoolatask.data.remote.mappers.NewsDataMapper
-import com.example.souhoolatask.data.remote.paging.NewsPagingFactory
-import com.example.souhoolatask.data.repository.datasources.NewsLocalDataSource
-import com.example.souhoolatask.data.repository.datasources.NewsRemoteDataSource
+import com.example.news.data.local.database.NewsDatabase
+import com.example.news.data.local.mappers.EntityMapper
 import com.example.news.domain.exceptions.ApiUnknownException
-import com.example.news.domain.exceptions.DataValidationException
 import com.example.news.domain.exceptions.NewsDomainException
+import com.example.news.data.remote.mappers.NewsDataMapper
+import com.example.news.data.remote.paging.NewsPagingFactory
+import com.example.news.data.repository.datasources.NewsLocalDataSource
+import com.example.news.data.repository.datasources.NewsRemoteDataSource
 import com.example.news.domain.model.Article
 import com.example.news.domain.model.ArticlesPage
 import com.example.news.domain.model.Source
@@ -19,6 +18,7 @@ import com.example.news.domain.model.enums.NewsCategory
 import com.example.news.domain.model.enums.SortBy
 import com.example.news.domain.model.values.SourceId
 import com.example.news.domain.repository.NewsRepository
+import com.example.souhoolatask.utils.mapResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -46,19 +46,15 @@ class NewsRepositoryImpl @Inject constructor(
         country: Country?
     ): Result<ArticlesPage> {
         return try {
-            val response = remoteDataSource.getTopHeadlines(
+            remoteDataSource.getTopHeadlines(
                 query = query,
                 category = category?.apiValue,
                 country = country?.code,
                 page = page,
                 pageSize = pageSize
-            )
-
-            response.fold(onSuccess = { newsResponseDto ->
-                NewsDataMapper.mapToArticlesPage(newsResponseDto, page, pageSize)
-            }, onFailure = { error ->
-                Result.failure(error)
-            })
+            ).mapResult { newsResponseDto ->
+                NewsDataMapper.mapToArticlesPage(newsResponseDto, page, pageSize).getOrThrow()
+            }
         } catch (e: Exception) {
             Result.failure(mapException(e))
         }
@@ -74,7 +70,7 @@ class NewsRepositoryImpl @Inject constructor(
         toDate: String?
     ): Result<ArticlesPage> {
         return try {
-            val response = remoteDataSource.searchEverything(
+            remoteDataSource.searchEverything(
                 query = query,
                 sortBy = sortBy.apiValue,
                 sources = sources?.map { it.value },
@@ -82,13 +78,9 @@ class NewsRepositoryImpl @Inject constructor(
                 to = toDate,
                 page = page,
                 pageSize = pageSize
-            )
-
-            response.fold(onSuccess = { newsResponseDto ->
-                NewsDataMapper.mapToArticlesPage(newsResponseDto, page, pageSize)
-            }, onFailure = { error ->
-                Result.failure(error)
-            })
+            ).mapResult { newsResponseDto ->
+                NewsDataMapper.mapToArticlesPage(newsResponseDto, page, pageSize).getOrThrow()
+            }
         } catch (e: Exception) {
             Result.failure(mapException(e))
         }
@@ -98,32 +90,33 @@ class NewsRepositoryImpl @Inject constructor(
         category: NewsCategory?, country: Country?
     ): Result<List<Source>> {
         return try {
-            val response = remoteDataSource.getSources(
+            remoteDataSource.getSources(
                 category = category?.apiValue, country = country?.code
-            )
-
-            response.fold(onSuccess = { sourcesResponseDto ->
-                NewsDataMapper.mapToSources(sourcesResponseDto)
-            }, onFailure = { error ->
-                Result.failure(error)
-            })
+            ).mapResult { sourcesResponseDto ->
+                NewsDataMapper.mapToSources(sourcesResponseDto).getOrThrow()
+            }
         } catch (e: Exception) {
             Result.failure(mapException(e))
         }
     }
 
-
     override fun getTopHeadlinesPaging(
-        category: NewsCategory?, country: Country?, query: String?, sortBy: SortBy, pageSize: Int
+        category: NewsCategory?,
+        country: Country?,
+        query: String?,
+        sortBy: SortBy,
+        pageSize: Int
     ): Flow<PagingData<Article>> {
         return pagingFactory.createTopHeadlinesPager(
-            category = category?.apiValue, country = country?.code, pageSize = pageSize
+            category = category?.apiValue,
+            country = country?.code,
+            pageSize = pageSize
         ).map { pagingData ->
             pagingData.map { entity ->
                 EntityMapper.mapEntityToDomain(entity).getOrThrow()
             }
-        }.catch { error ->
-            emit(PagingData.empty())
+        }.catch {
+            emit(PagingData.empty()) // Don't crash, just show empty state
         }
     }
 
@@ -141,17 +134,16 @@ class NewsRepositoryImpl @Inject constructor(
             pagingData.map { entity ->
                 EntityMapper.mapEntityToDomain(entity).getOrThrow()
             }
-        }.catch { error ->
+        }.catch {
             emit(PagingData.empty())
         }
     }
-
 
     override suspend fun refresh() {
         try {
             localDataSource.clearExpiredCache()
         } catch (e: Exception) {
-            // Log but don't throw
+            // Log but don't crash - this is best effort
         }
     }
 
@@ -159,17 +151,13 @@ class NewsRepositoryImpl @Inject constructor(
         try {
             database.clearAllTables()
         } catch (e: Exception) {
-            // Log but don't throw
+            // Log but don't crash
         }
     }
 
     private fun mapException(exception: Exception): NewsDomainException {
         return when (exception) {
             is NewsDomainException -> exception
-            is IllegalArgumentException -> DataValidationException(
-                exception.message ?: "Invalid parameters"
-            )
-
             else -> ApiUnknownException("Repository operation failed", exception)
         }
     }

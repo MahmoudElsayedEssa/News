@@ -3,11 +3,11 @@ package com.example.souhoolatask.di
 import android.content.Context
 import com.example.news.BuildConfig
 import com.example.news.data.remote.interceptors.ApiLoggingInterceptor
-import com.example.souhoolatask.data.remote.api.NewsApiService
-import com.example.souhoolatask.data.remote.interceptors.AuthenticationInterceptor
-import com.example.souhoolatask.data.remote.interceptors.CacheInterceptor
-import com.example.souhoolatask.data.remote.interceptors.ConnectivityInterceptor
-import com.example.souhoolatask.data.remote.interceptors.ErrorHandlingInterceptor
+import com.example.news.data.remote.api.NewsApiService
+import com.example.news.data.remote.interceptors.AuthenticationInterceptor
+import com.example.news.data.remote.interceptors.CacheInterceptor
+import com.example.news.data.remote.interceptors.ConnectivityInterceptor
+import com.example.news.data.remote.interceptors.ErrorHandlingInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module

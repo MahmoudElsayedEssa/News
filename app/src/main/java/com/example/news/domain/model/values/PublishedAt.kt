@@ -1,5 +1,8 @@
 package com.example.news.domain.model.values
 
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+
 @JvmInline
 value class PublishedAt(val value: String) {
     init {
@@ -16,14 +19,17 @@ value class PublishedAt(val value: String) {
         }
     }
 
-    fun isWithinLast24Hours(): Boolean {
-        // This would need actual date parsing in implementation
-        // For now, returning false as placeholder
-        return false
+    fun toEpochMillis(): Long {
+        return try {
+            Instant.parse(value).toEpochMilli()
+        } catch (e: Exception) {
+            throw IllegalStateException("Invalid date format: $value", e)
+        }
     }
 
-    fun toEpochMillis(): Long {
-        // Implementation would parse ISO string to epoch
-        return 0L
+    fun isWithinLast24Hours(): Boolean {
+        val now = System.currentTimeMillis()
+        val articleTime = toEpochMillis()
+        return (now - articleTime) <= TimeUnit.DAYS.toMillis(1)
     }
 }

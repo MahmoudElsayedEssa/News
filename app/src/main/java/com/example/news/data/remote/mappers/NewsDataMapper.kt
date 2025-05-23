@@ -1,9 +1,9 @@
-package com.example.souhoolatask.data.remote.mappers
+package com.example.news.data.remote.mappers
 
-import com.example.souhoolatask.data.remote.dtos.ArticleDto
-import com.example.souhoolatask.data.remote.dtos.NewsResponseDto
-import com.example.souhoolatask.data.remote.dtos.SourceDto
-import com.example.souhoolatask.data.remote.dtos.SourcesResponseDto
+import com.example.news.data.remote.dtos.ArticleDto
+import com.example.news.data.remote.dtos.NewsResponseDto
+import com.example.news.data.remote.dtos.SourceDto
+import com.example.news.data.remote.dtos.SourcesResponseDto
 import com.example.news.domain.exceptions.DataParsingException
 import com.example.news.domain.model.Article
 import com.example.news.domain.model.ArticlesPage

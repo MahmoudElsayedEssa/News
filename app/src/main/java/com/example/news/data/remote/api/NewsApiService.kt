@@ -1,7 +1,7 @@
-package com.example.souhoolatask.data.remote.api
+package com.example.news.data.remote.api
 
-import com.example.souhoolatask.data.remote.dtos.NewsResponseDto
-import com.example.souhoolatask.data.remote.dtos.SourcesResponseDto
+import com.example.news.data.remote.dtos.NewsResponseDto
+import com.example.news.data.remote.dtos.SourcesResponseDto
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query

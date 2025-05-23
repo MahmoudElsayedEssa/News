@@ -1,4 +1,4 @@
-package com.example.souhoolatask.data.remote.exceptions
+package com.example.news.data.remote.exceptions
 
 /**
  * Base class for API HTTP exceptions

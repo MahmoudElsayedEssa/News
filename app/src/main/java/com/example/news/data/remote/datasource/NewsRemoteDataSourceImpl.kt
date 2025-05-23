@@ -1,27 +1,13 @@
-package com.example.souhoolatask.data.remote.datasource
+package com.example.news.data.remote.datasource
 
-import com.example.souhoolatask.data.remote.api.NewsApiService
-import com.example.souhoolatask.data.remote.dtos.NewsResponseDto
-import com.example.souhoolatask.data.remote.dtos.SourcesResponseDto
-import com.example.souhoolatask.data.remote.exceptions.NetworkConnectionException
-import com.example.souhoolatask.data.remote.exceptions.NetworkHostException
-import com.example.souhoolatask.data.remote.exceptions.NoConnectivityException
-import com.example.souhoolatask.data.remote.exceptions.RateLimitException
-import com.example.souhoolatask.data.remote.exceptions.ServerErrorException
-import com.example.souhoolatask.data.remote.exceptions.ServiceUnavailableException
-import com.example.souhoolatask.data.remote.exceptions.UnauthorizedException
-import com.example.souhoolatask.data.repository.datasources.NewsRemoteDataSource
-import com.example.news.domain.exceptions.ApiUnavailableException
-import com.example.news.domain.exceptions.ApiUnknownException
-import com.example.news.domain.exceptions.AuthenticationException
-import com.example.news.domain.exceptions.AuthorizationException
-import com.example.news.domain.exceptions.DataParsingException
-import com.example.news.domain.exceptions.InvalidRequestException
-import com.example.news.domain.exceptions.NetworkTimeoutException
-import com.example.news.domain.exceptions.NetworkUnknownException
-import com.example.news.domain.exceptions.NewsDomainException
-import com.example.news.domain.exceptions.NoInternetConnectionException
-import com.example.news.domain.exceptions.RateLimitExceededException
+import com.example.news.data.DataErrorMapper
+import com.example.news.data.remote.api.NewsApiService
+import com.example.news.data.remote.dtos.NewsResponseDto
+import com.example.news.data.remote.dtos.SourcesResponseDto
+import com.example.news.data.repository.datasources.NewsRemoteDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,9 +18,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class NewsRemoteDataSourceImpl @Inject constructor(
-    private val apiService: NewsApiService
+    private val apiService: NewsApiService,
+    private val errorMapper: DataErrorMapper
 ) : NewsRemoteDataSource {
-
 
     override suspend fun getTopHeadlines(
         query: String?,
@@ -87,22 +73,23 @@ class NewsRemoteDataSourceImpl @Inject constructor(
     }
 
     override suspend fun getSources(
-        category: String?, language: String?, country: String?
+        category: String?,
+        language: String?,
+        country: String?
     ): Result<SourcesResponseDto> {
         return safeApiCall {
             apiService.getSources(
-                category = category, language = language, country = country
+                category = category,
+                language = language,
+                country = country
             )
         }
     }
 
-    /**
-     * Safe API call wrapper that handles errors and maps them to domain exceptions
-     */
     private suspend fun <T> safeApiCall(
         apiCall: suspend () -> Response<T>
-    ): Result<T> {
-        return try {
+    ): Result<T> = withContext(Dispatchers.IO) {
+        try {
             val response = apiCall()
 
             if (response.isSuccessful) {
@@ -110,66 +97,17 @@ class NewsRemoteDataSourceImpl @Inject constructor(
                 if (body != null) {
                     Result.success(body)
                 } else {
-                    Result.failure(DataParsingException("Response body is null"))
+                    Result.failure(errorMapper.mapToRepositoryError(
+                        Exception("Response body is null")
+                    ))
                 }
             } else {
-                val errorMessage = response.errorBody()?.string() ?: "Unknown error"
-                Result.failure(mapHttpError(response.code(), errorMessage))
+                Result.failure(errorMapper.mapToRepositoryError(
+                    HttpException(response)
+                ))
             }
         } catch (e: Exception) {
-            Result.failure(mapNetworkException(e))
-        }
-    }
-
-    /**
-     * Map HTTP status codes to domain exceptions
-     */
-    private fun mapHttpError(code: Int, message: String): NewsDomainException {
-        return when (code) {
-            400 -> InvalidRequestException("Bad request: $message")
-            401 -> AuthenticationException("Invalid API key: $message")
-            403 -> AuthorizationException("Access forbidden: $message")
-            429 -> RateLimitExceededException("Rate limit exceeded: $message")
-            500, 502, 503, 504 -> ApiUnavailableException("Service unavailable: $message")
-            else -> ApiUnknownException("HTTP $code: $message")
-        }
-    }
-
-    /**
-     * Map network exceptions to domain exceptions
-     */
-    private fun mapNetworkException(exception: Exception): NewsDomainException {
-        return when (exception) {
-            is NoConnectivityException -> NoInternetConnectionException(
-                exception.message ?: "No internet connection"
-            )
-
-            is NetworkTimeoutException -> NetworkTimeoutException(
-                exception.message ?: "Request timed out"
-            )
-
-            is NetworkConnectionException -> NetworkUnknownException(
-                exception.message ?: "Network connection failed", exception
-            )
-
-            is NetworkHostException -> NetworkUnknownException(
-                exception.message ?: "Host not found", exception
-            )
-
-            is UnauthorizedException -> AuthenticationException(
-                exception.message ?: "Authentication failed"
-            )
-
-            is RateLimitException -> RateLimitExceededException(
-                exception.message ?: "Rate limit exceeded"
-            )
-
-            is ServerErrorException -> ApiUnavailableException(exception.message ?: "Server error")
-            is ServiceUnavailableException -> ApiUnavailableException(
-                exception.message ?: "Service unavailable"
-            )
-
-            else -> ApiUnknownException("Unknown network error: ${exception.message}", exception)
+            Result.failure(errorMapper.mapToRepositoryError(e))
         }
     }
 }

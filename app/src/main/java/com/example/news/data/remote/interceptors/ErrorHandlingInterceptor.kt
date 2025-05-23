@@ -1,13 +1,13 @@
-package com.example.souhoolatask.data.remote.interceptors
+package com.example.news.data.remote.interceptors
 
-import com.example.souhoolatask.data.remote.exceptions.ApiHttpException
-import com.example.souhoolatask.data.remote.exceptions.BadRequestException
-import com.example.souhoolatask.data.remote.exceptions.ForbiddenException
-import com.example.souhoolatask.data.remote.exceptions.RateLimitException
-import com.example.souhoolatask.data.remote.exceptions.ServerErrorException
-import com.example.souhoolatask.data.remote.exceptions.ServiceUnavailableException
-import com.example.souhoolatask.data.remote.exceptions.UnauthorizedException
+import com.example.news.data.remote.exceptions.BadRequestException
+import com.example.news.data.remote.exceptions.ForbiddenException
+import com.example.news.data.remote.exceptions.RateLimitException
+import com.example.news.data.remote.exceptions.ServerErrorException
+import com.example.news.data.remote.exceptions.ServiceUnavailableException
+import com.example.news.data.remote.exceptions.UnauthorizedException
 import okhttp3.Interceptor
+import okhttp3.Response
 import org.json.JSONObject
 
 /**
@@ -15,7 +15,7 @@ import org.json.JSONObject
  */
 class ErrorHandlingInterceptor : Interceptor {
 
-    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+    override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val response = chain.proceed(request)
 
@@ -41,8 +41,7 @@ class ErrorHandlingInterceptor : Interceptor {
         return try {
             errorBody?.let { body ->
                 val json = JSONObject(body)
-//                json.optString("message", null)
-                ""
+                json.optString("message", null)
             }
         } catch (e: Exception) {
             null

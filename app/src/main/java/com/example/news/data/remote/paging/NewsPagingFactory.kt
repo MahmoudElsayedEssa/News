@@ -1,14 +1,14 @@
-package com.example.souhoolatask.data.remote.paging
+package com.example.news.data.remote.paging
 
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.example.souhoolatask.data.local.database.NewsDatabase
-import com.example.souhoolatask.data.local.entity.ArticleEntity
-import com.example.souhoolatask.data.remote.paging.mediator.NewsRemoteMediator
-import com.example.souhoolatask.data.repository.datasources.NewsLocalDataSource
-import com.example.souhoolatask.data.repository.datasources.NewsRemoteDataSource
+import com.example.news.data.local.database.NewsDatabase
+import com.example.news.data.local.entity.ArticleEntity
+import com.example.news.data.remote.paging.mediator.NewsRemoteMediator
+import com.example.news.data.repository.datasources.NewsLocalDataSource
+import com.example.news.data.repository.datasources.NewsRemoteDataSource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,15 +29,10 @@ class NewsPagingFactory @Inject constructor(
         country: String? = null,
         pageSize: Int = 20
     ): Flow<PagingData<ArticleEntity>> {
-        val queryKey = "top_headlines_${category}_$country"
+        val queryKey = "top_headlines_${category}_${country}"
 
         return Pager(
-            config = PagingConfig(
-                pageSize = pageSize,
-                prefetchDistance = 5,
-                enablePlaceholders = false,
-                initialLoadSize = pageSize
-            ),
+            config = createPagingConfig(pageSize),
             remoteMediator = NewsRemoteMediator(
                 queryKey = queryKey,
                 query = null,
@@ -57,15 +52,10 @@ class NewsPagingFactory @Inject constructor(
         sortBy: String? = "relevancy",
         pageSize: Int = 20
     ): Flow<PagingData<ArticleEntity>> {
-        val queryKey = "search_${query.hashCode()}_$sortBy"
+        val queryKey = "search_${query.hashCode()}_${sortBy.hashCode()}"
 
         return Pager(
-            config = PagingConfig(
-                pageSize = pageSize,
-                prefetchDistance = 5,
-                enablePlaceholders = false,
-                initialLoadSize = pageSize
-            ),
+            config = createPagingConfig(pageSize),
             remoteMediator = NewsRemoteMediator(
                 queryKey = queryKey,
                 query = query,
@@ -77,5 +67,15 @@ class NewsPagingFactory @Inject constructor(
             ),
             pagingSourceFactory = { localDataSource.getArticlesPagingSource(queryKey) }
         ).flow
+    }
+
+    private fun createPagingConfig(pageSize: Int): PagingConfig {
+        return PagingConfig(
+            pageSize = pageSize,
+            prefetchDistance = maxOf(1, pageSize / 4), // Prefetch 25% of page size
+            enablePlaceholders = false,
+            initialLoadSize = pageSize,
+            maxSize = pageSize * 10 // Limit memory usage
+        )
     }
 }

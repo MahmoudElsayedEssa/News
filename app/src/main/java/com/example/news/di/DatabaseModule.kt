@@ -3,8 +3,8 @@ package com.example.souhoolatask.di
 import android.content.Context
 import androidx.room.Room
 import com.example.news.data.local.daos.ArticlesDao
-import com.example.souhoolatask.data.local.daos.RemoteKeysDao
-import com.example.souhoolatask.data.local.database.NewsDatabase
+import com.example.news.data.local.daos.RemoteKeysDao
+import com.example.news.data.local.database.NewsDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,7 +1,7 @@
 package com.example.news.domain.repository
 
 import androidx.paging.PagingData
-import com.example.souhoolatask.data.remote.configuration.RemoteDataConfig.DEFAULT_PAGE_SIZE
+import com.example.news.data.remote.configuration.RemoteDataConfig.DEFAULT_PAGE_SIZE
 import com.example.news.domain.model.Article
 import com.example.news.domain.model.ArticlesPage
 import com.example.news.domain.model.Source

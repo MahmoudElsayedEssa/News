@@ -1,7 +1,7 @@
-package com.example.souhoolatask.data.repository.datasources
+package com.example.news.data.repository.datasources
 
 import androidx.paging.PagingSource
-import com.example.souhoolatask.data.local.entity.ArticleEntity
+import com.example.news.data.local.entity.ArticleEntity
 
 /**
  * Local data source interface for Room operations

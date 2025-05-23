@@ -1,4 +1,4 @@
-package com.example.souhoolatask.data.remote.configuration
+package com.example.news.data.remote.configuration
 
 /**
  * Configuration constants for the remote data layer

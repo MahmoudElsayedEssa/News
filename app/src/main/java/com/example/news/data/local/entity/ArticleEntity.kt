@@ -1,23 +1,21 @@
-package com.example.souhoolatask.data.local.entity
+package com.example.news.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * Room entity for caching articles locally
- */
 @Entity(
     tableName = "articles",
     indices = [
-        Index(value = ["url"], unique = true),
+        Index(value = ["query_key"]),
         Index(value = ["published_at"]),
-        Index(value = ["query_key"])
+        Index(value = ["query_key", "published_at"])
     ]
 )
 data class ArticleEntity(
-    @PrimaryKey val url: String,
+    @PrimaryKey val id: String,
+    val url: String,
     val title: String,
     val description: String?,
     val content: String?,
@@ -26,6 +24,6 @@ data class ArticleEntity(
     @ColumnInfo(name = "source_id") val sourceId: String?,
     @ColumnInfo(name = "source_name") val sourceName: String,
     val author: String?,
-    @ColumnInfo(name = "cached_at") val cachedAt: Long = System.currentTimeMillis(),
-    @ColumnInfo(name = "query_key") val queryKey: String? = null
+    @ColumnInfo(name = "query_key") val queryKey: String,
+    @ColumnInfo(name = "cached_at") val cachedAt: Long = System.currentTimeMillis()
 )

@@ -1,6 +1,6 @@
 package com.example.souhoolatask.di
 
-import com.example.souhoolatask.data.repository.NewsRepositoryImpl
+import com.example.news.data.repository.NewsRepositoryImpl
 import com.example.news.domain.repository.NewsRepository
 import dagger.Binds
 import dagger.Module

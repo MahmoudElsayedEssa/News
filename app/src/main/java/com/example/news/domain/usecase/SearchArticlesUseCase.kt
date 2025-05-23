@@ -1,7 +1,7 @@
 package com.example.news.domain.usecase
 
-import com.example.souhoolatask.data.remote.configuration.RemoteDataConfig.DEFAULT_PAGE_SIZE
-import com.example.souhoolatask.data.remote.configuration.RemoteDataConfig.MAX_PAGE_SIZE
+import com.example.news.data.remote.configuration.RemoteDataConfig.DEFAULT_PAGE_SIZE
+import com.example.news.data.remote.configuration.RemoteDataConfig.MAX_PAGE_SIZE
 import com.example.news.domain.exceptions.ApiUnknownException
 import com.example.news.domain.exceptions.DataValidationException
 import com.example.news.domain.exceptions.NewsDomainException

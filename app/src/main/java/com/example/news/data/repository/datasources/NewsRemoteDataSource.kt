@@ -1,7 +1,7 @@
-package com.example.souhoolatask.data.repository.datasources
+package com.example.news.data.repository.datasources
 
-import com.example.souhoolatask.data.remote.dtos.NewsResponseDto
-import com.example.souhoolatask.data.remote.dtos.SourcesResponseDto
+import com.example.news.data.remote.dtos.NewsResponseDto
+import com.example.news.data.remote.dtos.SourcesResponseDto
 
 /**
  * Remote data source interface for news data

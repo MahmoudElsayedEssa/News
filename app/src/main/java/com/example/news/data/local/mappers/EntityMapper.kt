@@ -1,22 +1,23 @@
-package com.example.souhoolatask.data.local.mappers
-
-import com.example.souhoolatask.data.local.entity.ArticleEntity
-import com.example.souhoolatask.data.remote.dtos.ArticleDto
+package com.example.news.data.local.mappers
+import com.example.news.data.local.entity.ArticleEntity
+import com.example.news.data.remote.dtos.ArticleDto
 import com.example.news.domain.exceptions.DataParsingException
 import com.example.news.domain.model.Article
 import com.example.news.domain.model.Source
+import java.util.UUID.randomUUID
 
-/**
- * Additional mapper methods for entities
- */
 object EntityMapper {
 
     fun mapEntityToDomain(entity: ArticleEntity): Result<Article> {
         return try {
+            // ✅ Handle source creation safely
             val source = Source.create(
                 id = entity.sourceId,
                 name = entity.sourceName
-            ).getOrThrow()
+            ).getOrElse {
+                // Fallback to safe default instead of crashing
+                Source.create(null, "Unknown Source").getOrThrow()
+            }
 
             Article.create(
                 id = entity.url,
@@ -36,7 +37,7 @@ object EntityMapper {
 
     fun mapDtoToEntity(
         dto: ArticleDto,
-        queryKey: String? = null
+        queryKey: String
     ): ArticleEntity {
         return ArticleEntity(
             url = dto.url,
@@ -48,7 +49,8 @@ object EntityMapper {
             sourceId = dto.source.id,
             sourceName = dto.source.name,
             author = dto.author,
-            queryKey = queryKey
+            queryKey = queryKey,
+            id = randomUUID().toString(),
         )
     }
 }

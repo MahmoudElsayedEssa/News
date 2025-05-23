@@ -1,4 +1,4 @@
-package com.example.souhoolatask.data.remote.interceptors
+package com.example.news.data.remote.interceptors
 
 import android.Manifest
 import android.content.Context
@@ -6,11 +6,12 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresPermission
-import com.example.souhoolatask.data.remote.exceptions.NetworkConnectionException
-import com.example.souhoolatask.data.remote.exceptions.NetworkHostException
-import com.example.souhoolatask.data.remote.exceptions.NetworkTimeoutException
-import com.example.souhoolatask.data.remote.exceptions.NoConnectivityException
+import com.example.news.data.remote.exceptions.NetworkConnectionException
+import com.example.news.data.remote.exceptions.NetworkHostException
+import com.example.news.data.remote.exceptions.NetworkTimeoutException
+import com.example.news.data.remote.exceptions.NoConnectivityException
 import okhttp3.Interceptor
+import okhttp3.Response
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -22,7 +23,7 @@ class ConnectivityInterceptor(
     private val context: Context
 ) : Interceptor {
 
-    override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
+    override fun intercept(chain: Interceptor.Chain): Response {
         if (!isNetworkAvailable()) {
             throw NoConnectivityException("No internet connection")
         }
