@@ -1,6 +1,5 @@
 package com.example.news.data.remote.paging
 
-import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -17,7 +16,6 @@ class NewsPagingFactory @Inject constructor(
     private val remoteDataSource: NewsRemoteDataSource
 ) {
 
-    @OptIn(ExperimentalPagingApi::class)
     fun createTopHeadlinesPager(
         category: String? = null,
         country: String? = null,
@@ -25,18 +23,15 @@ class NewsPagingFactory @Inject constructor(
         pageSize: Int = 20
     ): Flow<PagingData<Article>> {
 
-        val safeCategory = category ?: "general" //
-        val safeCountry = country ?: "us" //
-        val queryKeyForFetcherIdentification = "top_headlines_${safeCategory}_${safeCountry}_${query?.hashCode() ?: "null"}" //
+        val queryKey = "top_headlines_${category}_${country}_${query?.hashCode() ?: "null"}"
 
         val fetcher = TopHeadlinesFetcher(
-            queryKey = queryKeyForFetcherIdentification,
+            queryKey = queryKey,
             apiPageSize = pageSize,
             remoteDataSource = remoteDataSource,
             query = query,
-            category = safeCategory,
-            country = safeCountry,
-            sources = null
+            category = category,
+            country = country
         )
 
         return Pager(
@@ -50,31 +45,24 @@ class NewsPagingFactory @Inject constructor(
         ).flow
     }
 
-    @OptIn(ExperimentalPagingApi::class)
     fun createSearchPager(
         query: String,
         sortBy: String? = "relevancy",
-        sources: List<String>? = null,
-        fromDate: String? = null,
-        toDate: String? = null,
         pageSize: Int = 20
     ): Flow<PagingData<Article>> {
 
-        require(query.isNotBlank()) { "Search query cannot be blank" } //
-        require(query.length >= 2) { "Search query must be at least 2 characters" } //
+        require(query.isNotBlank()) { "Search query cannot be blank" }
+        require(query.length >= 2) { "Search query must be at least 2 characters" }
 
-        val sanitizedQuery = query.trim() //
-        val queryKeyForFetcherIdentification = "search_${sanitizedQuery.hashCode()}_${sortBy.hashCode()}_${sources?.hashCode() ?: 0}" //
+        val sanitizedQuery = query.trim()
+        val queryKey = "search_${sanitizedQuery.hashCode()}_${sortBy.hashCode()}"
 
         val fetcher = SearchEverythingFetcher(
-            queryKey = queryKeyForFetcherIdentification,
+            queryKey = queryKey,
             apiPageSize = pageSize,
             remoteDataSource = remoteDataSource,
             searchQuery = sanitizedQuery,
-            sortBy = sortBy,
-            sources = sources,
-            fromDate = fromDate,
-            toDate = toDate
+            sortBy = sortBy
         )
 
         return Pager(
@@ -84,7 +72,7 @@ class NewsPagingFactory @Inject constructor(
                 enablePlaceholders = false,
                 initialLoadSize = pageSize * 2
             ),
-            pagingSourceFactory = { ArticleNetworkPagingSource(fetcher) } // Directly use the network PagingSource
+            pagingSourceFactory = { ArticleNetworkPagingSource(fetcher) }
         ).flow
     }
 }

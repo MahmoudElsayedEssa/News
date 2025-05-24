@@ -76,7 +76,7 @@ fun SearchSuggestions(
                     },
                     leadingContent = {
                         Icon(
-                            imageVector = Icons.Outlined.History,
+                            imageVector = History,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)

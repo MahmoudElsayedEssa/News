@@ -6,8 +6,6 @@ import com.example.news.data.remote.interceptors.ApiLoggingInterceptor
 import com.example.news.data.remote.api.NewsApiService
 import com.example.news.data.remote.interceptors.AuthenticationInterceptor
 import com.example.news.data.remote.interceptors.CacheInterceptor
-import com.example.news.data.remote.interceptors.ConnectivityInterceptor
-import com.example.news.data.remote.interceptors.ErrorHandlingInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -59,23 +57,6 @@ object NetworkModule {
         return AuthenticationInterceptor(apiKey)
     }
 
-    /**
-     * Provide connectivity interceptor
-     */
-    @Provides
-    @Singleton
-    fun provideConnectivityInterceptor(@ApplicationContext context: Context): ConnectivityInterceptor {
-        return ConnectivityInterceptor(context)
-    }
-
-    /**
-     * Provide error handling interceptor
-     */
-    @Provides
-    @Singleton
-    fun provideErrorInterceptor(): ErrorHandlingInterceptor {
-        return ErrorHandlingInterceptor()
-    }
 
     /**
      * Provide logging interceptor
@@ -113,15 +94,14 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthenticationInterceptor,
-        connectivityInterceptor: ConnectivityInterceptor,
-        errorInterceptor: ErrorHandlingInterceptor,
         loggingInterceptor: ApiLoggingInterceptor,
         cacheInterceptor: CacheInterceptor,
         cache: Cache
     ): OkHttpClient {
-        return OkHttpClient.Builder().addInterceptor(connectivityInterceptor)
-            .addInterceptor(authInterceptor).addInterceptor(cacheInterceptor)
-            .addInterceptor(loggingInterceptor).addInterceptor(errorInterceptor).cache(cache)
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(cacheInterceptor)
+            .addInterceptor(loggingInterceptor).cache(cache)
             .connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS).retryOnConnectionFailure(true).build()
     }

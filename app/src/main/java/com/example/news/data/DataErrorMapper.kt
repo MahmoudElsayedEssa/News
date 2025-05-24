@@ -1,5 +1,17 @@
 package com.example.news.data
-import com.example.news.domain.exceptions.*
+
+import com.example.news.domain.exceptions.ApiUnavailableException
+import com.example.news.domain.exceptions.ApiUnknownException
+import com.example.news.domain.exceptions.AuthenticationException
+import com.example.news.domain.exceptions.AuthorizationException
+import com.example.news.domain.exceptions.DataNotFoundException
+import com.example.news.domain.exceptions.DataValidationException
+import com.example.news.domain.exceptions.InvalidRequestException
+import com.example.news.domain.exceptions.NetworkTimeoutException
+import com.example.news.domain.exceptions.NetworkUnknownException
+import com.example.news.domain.exceptions.NewsDomainException
+import com.example.news.domain.exceptions.NoInternetConnectionException
+import com.example.news.domain.exceptions.RateLimitExceededException
 import kotlinx.coroutines.TimeoutCancellationException
 import retrofit2.HttpException
 import java.io.IOException
@@ -17,10 +29,24 @@ class DataErrorMapper @Inject constructor() {
         return when (throwable) {
             is NewsDomainException -> throwable
 
+            // Handle custom exceptions from interceptors gracefully
+            is com.example.news.data.remote.exceptions.BadRequestException ->
+                InvalidRequestException("Bad request: ${throwable.message}")
+            is com.example.news.data.remote.exceptions.UnauthorizedException ->
+                AuthenticationException("Invalid API key: ${throwable.message}")
+            is com.example.news.data.remote.exceptions.ForbiddenException ->
+                AuthorizationException("Access forbidden: ${throwable.message}")
+            is com.example.news.data.remote.exceptions.RateLimitException ->
+                RateLimitExceededException("Rate limit exceeded: ${throwable.message}")
+            is com.example.news.data.remote.exceptions.ServerErrorException ->
+                ApiUnavailableException("Server error: ${throwable.message}")
+            is com.example.news.data.remote.exceptions.ServiceUnavailableException ->
+                ApiUnavailableException("Service unavailable: ${throwable.message}")
+
             // Network-specific exceptions
             is TimeoutCancellationException -> NetworkTimeoutException("Request timed out")
             is SocketTimeoutException -> NetworkTimeoutException("Socket timeout occurred")
-            is ConnectException -> NetworkTimeoutException("Failed to connect to server")
+            is ConnectException -> NoInternetConnectionException("Failed to connect to server")
             is UnknownHostException -> NoInternetConnectionException("Cannot resolve host: ${throwable.message}")
 
             // IO exceptions - more granular handling
@@ -55,7 +81,7 @@ class DataErrorMapper @Inject constructor() {
             message.contains("permission") ->
                 NoInternetConnectionException("Network permission denied")
 
-            else -> ApiUnknownException("IO error occurred", exception)
+            else -> NetworkUnknownException("IO error occurred", exception)
         }
     }
 
@@ -63,8 +89,8 @@ class DataErrorMapper @Inject constructor() {
         val errorMessage = message ?: "HTTP error $code"
 
         return when (code) {
-            400 -> InvalidRequestException("Bad request: $errorMessage")
-            401 -> AuthenticationException("Authentication failed - check API key")
+            400 -> InvalidRequestException("Bad request: $errorMessage. Please check your parameters.")
+            401 -> AuthenticationException("Invalid API key. Please check your NewsAPI key.")
             403 -> AuthorizationException("Access forbidden: $errorMessage")
             404 -> DataNotFoundException("Resource not found")
             409 -> DataValidationException("Conflict: $errorMessage")
@@ -78,17 +104,4 @@ class DataErrorMapper @Inject constructor() {
             else -> ApiUnknownException("HTTP $code: $errorMessage")
         }
     }
-}
-
-inline fun <T, R> Result<T>.mapResult(transform: (T) -> R): Result<R> {
-    return fold(
-        onSuccess = { value ->
-            try {
-                Result.success(transform(value))
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        },
-        onFailure = { Result.failure(it) }
-    )
 }

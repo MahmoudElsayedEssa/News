@@ -29,7 +29,6 @@ fun FilterContent(
     onCategorySelected: (NewsCategory?) -> Unit,
     onCountrySelected: (Country?) -> Unit,
     onSortBySelected: (SortBy) -> Unit,
-    onApply: () -> Unit,
     isClosing: Boolean
 ) {
     val animatedAlpha by animateFloatAsState(
@@ -87,7 +86,5 @@ fun FilterContent(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Action Buttons
-        FilterActions(Modifier.padding(horizontal = 24.dp), onApply = onApply)
     }
 }

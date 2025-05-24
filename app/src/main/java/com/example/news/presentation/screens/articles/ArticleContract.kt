@@ -1,16 +1,13 @@
 package com.example.news.presentation.screens.articles
 
 import androidx.compose.runtime.Stable
-import com.example.news.domain.model.Article
+import androidx.paging.compose.LazyPagingItems
 import com.example.news.domain.model.Source
 import com.example.news.domain.model.enums.Country
 import com.example.news.domain.model.enums.NewsCategory
 import com.example.news.domain.model.enums.SortBy
+import com.example.news.presentation.model.ArticleUi
 
-
-/**
- * UI State that represents ArticleListScreen
- */
 
 @Stable
 data class ArticleListState(
@@ -28,7 +25,9 @@ data class ArticleListState(
     val networkStatus: NetworkStatus = NetworkStatus.Unknown,
     val lastRefreshTime: Long = 0L,
     val searchHistory: List<String> = emptyList(),
-    val filterCounts: FilterCounts = FilterCounts()
+    val articles: LazyPagingItems<ArticleUi>? = null, // Added articles to state
+    val isLoadingArticles: Boolean = false,
+    val hasMoreArticles: Boolean = true
 ) {
     val hasActiveFilters: Boolean
         get() = selectedCategory != null || selectedCountry != null || selectedSortBy != SortBy.PUBLISHED_AT
@@ -40,9 +39,6 @@ data class ArticleListState(
         get() = !isRefreshing && isOnline
 }
 
-/**
- * Comprehensive error handling
- */
 @Stable
 sealed class ErrorState(
     val message: String,
@@ -79,26 +75,10 @@ sealed class ErrorState(
     )
 }
 
-/**
- * Network status tracking
- */
 enum class NetworkStatus {
     Connected, Disconnected, Unknown
 }
 
-/**
- * Filter statistics
- */
-@Stable
-data class FilterCounts(
-    val totalArticles: Int = 0,
-    val categoryCounts: Map<NewsCategory, Int> = emptyMap(),
-    val countryCounts: Map<Country, Int> = emptyMap()
-)
-
-/**
- * Comprehensive actions with validation and error handling
- */
 @Stable
 data class ArticleListActions(
     val onSearchQueryChange: (String) -> Unit = {},
@@ -107,7 +87,7 @@ data class ArticleListActions(
     val onCategorySelected: (NewsCategory?) -> Unit = {},
     val onCountrySelected: (Country?) -> Unit = {},
     val onSortBySelected: (SortBy) -> Unit = {},
-    val onArticleClick: (Article) -> Unit = {},
+    val onArticleClick: (ArticleUi) -> Unit = {},
     val onRefresh: () -> Unit = {},
     val onRetry: () -> Unit = {},
     val onShowFilters: (Boolean) -> Unit = {},
@@ -116,6 +96,4 @@ data class ArticleListActions(
     val onSearchHistoryItemClick: (String) -> Unit = {},
     val onClearSearchHistory: () -> Unit = {},
     val onNetworkStatusChange: (NetworkStatus) -> Unit = {},
-    val onBookmarkToggle: (Article) -> Unit = {},
-    val onShareArticle: (Article) -> Unit = {}
 )

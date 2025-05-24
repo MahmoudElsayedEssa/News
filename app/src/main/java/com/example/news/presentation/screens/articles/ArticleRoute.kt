@@ -22,7 +22,13 @@ fun ArticleListRoute(
 ) {
     // State observing and declarations
     val uiState by viewModel.stateFlow.collectAsState()
-    val articles = viewModel.articles.collectAsLazyPagingItems()
+    val articles = viewModel.getArticles().collectAsLazyPagingItems()
+
+    // Create composite state that includes articles
+    val completeState = uiState.copy(
+        articles = articles,
+        isLoadingArticles = articles.loadState.refresh is androidx.paging.LoadState.Loading
+    )
 
     // UI Actions
     val actions = rememberArticleListActions(navController, viewModel)
@@ -33,18 +39,17 @@ fun ArticleListRoute(
             when (event) {
                 is ArticleListNavigationEvent.NavigateToDetail -> {
                     navController.navigate(
-                        NewsDestination.ArticleDetail.createRoute(event.articleUrl)
+                        NewsDestination.ArticleDetail.createRoute(event.articleJson)
                     )
                 }
             }
         }
     }
 
-    // UI Rendering
+    // UI Rendering - now only passes state and actions
     ArticleListScreen(
-        state = uiState,
-        actions = actions,
-        articles = articles
+        state = completeState,
+        actions = actions
     )
 }
 
@@ -62,7 +67,7 @@ fun rememberArticleListActions(
             onCategorySelected = viewModel::selectCategory,
             onCountrySelected = viewModel::selectCountry,
             onSortBySelected = viewModel::selectSortBy,
-            onArticleClick = viewModel::onArticleClick,
+            onArticleClick = viewModel::onArticleClick, // Now takes ArticleUi
             onRefresh = viewModel::refresh,
             onRetry = viewModel::retry,
             onShowFilters = viewModel::setShowFilters,
@@ -71,10 +76,7 @@ fun rememberArticleListActions(
             onSearchHistoryItemClick = viewModel::onSearchHistoryItemClick,
             onClearSearchHistory = viewModel::clearSearchHistory,
             onNetworkStatusChange = { status ->
-                // Handle network status changes if needed
             },
-            onBookmarkToggle = viewModel::bookmarkArticle,
-            onShareArticle = viewModel::shareArticle
         )
     }
 }

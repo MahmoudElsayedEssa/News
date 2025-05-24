@@ -15,63 +15,42 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.paging.PagingData
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.news.domain.model.Article
 import com.example.news.presentation.screens.articles.components.ArticleListContent
-import com.example.news.presentation.screens.articles.components.CustomPullToRefreshIndicator
+import com.example.news.presentation.screens.articles.components.articlecard.CustomPullToRefreshIndicator
 import com.example.news.presentation.screens.articles.components.filtersbottomsheet.FiltersBottomSheet
 import com.example.news.presentation.screens.articles.components.newstopbar.NewsTopBar
 import com.example.news.presentation.screens.components.ErrorSnackbarHost
-import kotlinx.coroutines.flow.flowOf
 
-/**
- * ArticleList Screen UI
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleListScreen(
-    state: ArticleListState,
-    actions: ArticleListActions,
-    articles: LazyPagingItems<Article>
+    state: ArticleListState, actions: ArticleListActions
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     var isScrolled by remember { mutableStateOf(false) }
 
-    // Handle network status changes
     LaunchedEffect(state.networkStatus) {
         actions.onNetworkStatusChange(state.networkStatus)
     }
 
-    Scaffold(
-        topBar = {
-            NewsTopBar(
-                searchQuery = state.searchQuery,
-                isSearchActive = state.isSearchActive,
-                isScrolled = isScrolled,
-                onSearchQueryChange = actions.onSearchQueryChange,
-                onSearchSubmit = actions.onSearchSubmit,
-                onSearchActiveChange = actions.onSearchActiveChange,
-                onShowFilters = { actions.onShowFilters(true) },
-                hasActiveFilters = state.hasActiveFilters,
-                searchHistory = state.searchHistory,
-                onSearchHistoryItemClick = actions.onSearchHistoryItemClick,
-                onClearSearchHistory = actions.onClearSearchHistory
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = {
-            // Custom snackbar host for better error handling
-            ErrorSnackbarHost(
-                error = state.error,
-                onRetry = actions.onRetry,
-                onDismiss = actions.onClearError
-            )
-        }
-    ) { paddingValues ->
+    Scaffold(topBar = {
+        NewsTopBar(
+            searchQuery = state.searchQuery,
+            isSearchActive = state.isSearchActive,
+            isScrolled = isScrolled,
+            onSearchQueryChange = actions.onSearchQueryChange,
+            onSearchSubmit = actions.onSearchSubmit,
+            onSearchActiveChange = actions.onSearchActiveChange,
+            searchHistory = state.searchHistory,
+            onSearchHistoryItemClick = actions.onSearchHistoryItemClick,
+            onClearSearchHistory = actions.onClearSearchHistory
+        )
+    }, containerColor = MaterialTheme.colorScheme.background, snackbarHost = {
+        ErrorSnackbarHost(
+            error = state.error, onRetry = actions.onRetry, onDismiss = actions.onClearError
+        )
+    }) { paddingValues ->
 
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
@@ -86,19 +65,18 @@ fun ArticleListScreen(
                     isRefreshing = state.isRefreshing,
                     state = pullToRefreshState
                 )
+            }) {
+            // Get articles from state
+            state.articles?.let { articles ->
+                ArticleListContent(
+                    state = state,
+                    actions = actions,
+                    articles = articles, // Now retrieved from state
+                    onScrolled = { isScrolled = it })
             }
-        ) {
-            // Main content with sophisticated state handling
-            ArticleListContent(
-                state = state,
-                actions = actions,
-                articles = articles,
-                onScrolled = { isScrolled = it }
-            )
         }
     }
 
-    // Enhanced Filters Sheet
     if (state.showFilters) {
         FiltersBottomSheet(
             selectedCategory = state.selectedCategory,
@@ -112,15 +90,12 @@ fun ArticleListScreen(
     }
 }
 
-
-@Preview(name = "Elegant ArticleList", showBackground = true)
+@Preview(name = "ArticleList", showBackground = true)
 @Composable
 private fun ArticleListScreenPreview() {
     MaterialTheme {
         ArticleListScreen(
-            state = ArticleListState(),
-            actions = ArticleListActions(),
-            articles = flowOf(PagingData.empty<Article>()).collectAsLazyPagingItems()
+            state = ArticleListState(), actions = ArticleListActions()
         )
     }
 }

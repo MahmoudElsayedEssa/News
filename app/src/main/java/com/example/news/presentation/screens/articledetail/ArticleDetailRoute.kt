@@ -1,7 +1,6 @@
 package com.example.news.presentation.screens.articledetail
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -16,16 +15,10 @@ import androidx.navigation.NavController
 @Composable
 fun ArticleDetailRoute(
     navController: NavController,
-    articleUrl: String,
     viewModel: ArticleDetailViewModel = hiltViewModel()
 ) {
-    // State observing and declarations
     val uiState by viewModel.stateFlow.collectAsState()
 
-    // Load article on composition
-    LaunchedEffect(articleUrl) {
-        viewModel.loadArticle(articleUrl)
-    }
 
     // UI Actions
     val actions = rememberArticleDetailActions(navController, viewModel)
@@ -47,7 +40,10 @@ fun rememberArticleDetailActions(
             onShareClick = { viewModel.shareArticle(context) },
             onReadMoreClick = { viewModel.openInBrowser(context) },
             onBookmarkClick = viewModel::toggleBookmark,
-            onRetry = viewModel::retry
+            onRetry = viewModel::retry,
+            onImageFullScreen = viewModel::setFullScreenImage,
+            onFontSizeChange = viewModel::changeFontSize,
+            onReadingProgressChange = viewModel::updateReadingProgress
         )
     }
 }

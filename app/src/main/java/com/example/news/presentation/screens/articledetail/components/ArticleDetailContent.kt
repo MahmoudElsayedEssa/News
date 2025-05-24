@@ -1,10 +1,15 @@
 package com.example.news.presentation.screens.articledetail.components
 
-
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,285 +17,329 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.news.R
-import com.example.news.domain.model.Article
 import com.example.news.presentation.icons.OpenInNew
-import com.example.news.presentation.icons.Time
+import com.example.news.presentation.icons.Schedule
 import com.example.news.presentation.screens.articledetail.FontSize
 import com.example.news.presentation.utils.formatDateTime
+import com.example.news.presentation.model.ArticleUi as Article
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleDetailContent(
     article: Article,
     fontSize: FontSize,
     onReadMoreClick: () -> Unit,
+    onShareClick: () -> Unit,
     onImageClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
 
     Column(
-        modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
+                    )
+                )
+            ), verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Hero Image
-        article.imageUrl?.let { imageUrl ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context).data(imageUrl.value).crossfade(true)
-                        .build(),
-                    contentDescription = "Article image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(16.dp)),
-                    error = painterResource(R.drawable.ic_launcher_background),
-                    onSuccess = {
-                        // Image loaded successfully
-                    })
-            }
-        }
 
-        // Article Header
-        ArticleHeader(
-            article = article, fontSize = fontSize
-        )
-
-        // Article Meta Information
-        ArticleMetaInfo(
-            article = article, fontSize = fontSize
-        )
-
-        HorizontalDivider()
-
-        // Article Content
-        ArticleContent(
-            article = article, fontSize = fontSize
-        )
-
-        // Author Information
-        article.author?.let { author ->
-            AuthorInfo(
-                author = author.value, fontSize = fontSize
+        // Enhanced Title Section
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
             )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Read More Button
-        ReadMoreButton(
-            onClick = onReadMoreClick, modifier = Modifier.fillMaxWidth()
-        )
-
-        // Additional spacing for FAB
-        Spacer(modifier = Modifier.height(80.dp))
-    }
-}
-
-
-@Composable
-private fun ArticleHeader(
-    article: Article, fontSize: FontSize
-) {
-    Text(
-        text = article.title.value,
-        style = MaterialTheme.typography.headlineMedium.copy(
-            fontSize = MaterialTheme.typography.headlineMedium.fontSize * fontSize.scale
-        ),
-        fontWeight = FontWeight.Bold,
-        lineHeight = (MaterialTheme.typography.headlineMedium.lineHeight * fontSize.scale),
-        color = MaterialTheme.colorScheme.onSurface
-    )
-}
-
-@Composable
-private fun ArticleMetaInfo(
-    article: Article, fontSize: FontSize
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Source information
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Surface(
-                shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primaryContainer
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = article.source.name.value,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontSize = MaterialTheme.typography.labelMedium.fontSize * fontSize.scale
-                    ),
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    text = article.title, style = MaterialTheme.typography.headlineLarge.copy(
+                        fontSize = (28 * fontSize.scale).sp, lineHeight = (36 * fontSize.scale).sp
+                    ), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface
                 )
-            }
-        }
 
-        // Published date with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                imageVector = Time,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = formatDateTime(article.publishedAt.value),
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontSize = MaterialTheme.typography.bodySmall.fontSize * fontSize.scale
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun ArticleContent(
-    article: Article, fontSize: FontSize
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Description
-        article.description?.let { description ->
-            Text(
-                text = description.value, style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = MaterialTheme.typography.bodyLarge.fontSize * fontSize.scale,
-                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * fontSize.scale
-                ), color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Justify
-            )
-        }
-
-        // Full content
-        article.content?.let { content ->
-            if (content.isNotEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    )
+                // Enhanced Source and Date Row
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.Center,
+                    itemVerticalAlignment = Alignment.CenterVertically
                 ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            modifier = Modifier.animateContentSize()
+                        ) {
+                            Text(
+                                text = article.sourceName,
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontSize = (14 * fontSize.scale).sp
+                                ),
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+
+                        if (article.author != null) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+                            ) {
+                                Text(
+                                    text = "by ${article.author}",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontSize = (12 * fontSize.scale).sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+                    }
+
                     Text(
-                        text = content.value,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontSize = MaterialTheme.typography.bodyLarge.fontSize * fontSize.scale,
-                            lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * fontSize.scale
+                        text = formatDateTime(article.publishedAt),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = (12 * fontSize.scale).sp
                         ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Justify,
-                        modifier = Modifier.padding(16.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
             }
         }
-    }
-}
 
-@Composable
-private fun AuthorInfo(
-    author: String, fontSize: FontSize
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        // Enhanced Main Image
+        article.imageUrl?.let { imageUrl ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(280.dp)
+                    .padding(horizontal = 16.dp)
+                    .clickable { onImageClick() },
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.padding(8.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Column {
-                Text(
-                    text = "Written by", style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = MaterialTheme.typography.labelSmall.fontSize * fontSize.scale
-                    ), color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Text(
-                    text = author, style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = MaterialTheme.typography.bodyMedium.fontSize * fontSize.scale
-                    ), fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface
+                AsyncImage(
+                    model = ImageRequest.Builder(context).data(imageUrl).crossfade(true).build(),
+                    contentDescription = "Article main image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                    error = painterResource(R.drawable.ic_launcher_background)
                 )
             }
         }
-    }
-}
 
-@Composable
-private fun ReadMoreButton(
-    onClick: () -> Unit, modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        )
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.OpenInNew,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Read Full Article",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold
-        )
+        // Enhanced Content Section
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        ) {
+            SelectionContainer {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Enhanced Description
+                    article.description?.let { description ->
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        fontSize = (18 * fontSize.scale).sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                ) {
+                                    append(description)
+                                }
+                            }, style = MaterialTheme.typography.bodyLarge.copy(
+                                lineHeight = (28 * fontSize.scale).sp
+                            ), textAlign = TextAlign.Justify
+                        )
+                    }
+
+                    // Enhanced Divider
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    )
+
+                    // Enhanced Full Content
+                    article.content?.let { content ->
+                        if (content.isNotEmpty()) {
+                            Text(
+                                text = content,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = (16 * fontSize.scale).sp,
+                                    lineHeight = (26 * fontSize.scale).sp
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                                textAlign = TextAlign.Justify
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Reading Information & Action Section
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Reading Time Info
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Schedule,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+
+
+
+                    Text(
+                        text = "${article.readTime} min read",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontSize = (14 * fontSize.scale).sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Action Buttons Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = onReadMoreClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = 56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 8.dp
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Read Full", style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = (14 * fontSize.scale).sp
+                            ), fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = onShareClick,
+                        modifier = Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = 56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(
+                            1.5.dp, MaterialTheme.colorScheme.primary
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Share", style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = (14 * fontSize.scale).sp
+                            ), fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        }
+
+        // Bottom spacing for better scrolling experience
+        Spacer(modifier = Modifier.height(120.dp))
     }
 }

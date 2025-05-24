@@ -1,12 +1,10 @@
 package com.example.news.data.remote.mappers
 
 import com.example.news.data.remote.dtos.ArticleDto
-import com.example.news.data.remote.dtos.NewsResponseDto
 import com.example.news.data.remote.dtos.SourceDto
 import com.example.news.data.remote.dtos.SourcesResponseDto
 import com.example.news.domain.exceptions.DataParsingException
 import com.example.news.domain.model.Article
-import com.example.news.domain.model.ArticlesPage
 import com.example.news.domain.model.Source
 
 /**
@@ -15,35 +13,6 @@ import com.example.news.domain.model.Source
  */
 object NewsDataMapper {
 
-    /**
-     * Map NewsResponseDto to ArticlesPage domain model
-     */
-    fun mapToArticlesPage(
-        dto: NewsResponseDto, currentPage: Int, pageSize: Int
-    ): Result<ArticlesPage> {
-        return try {
-            if (dto.status != "ok") {
-                return Result.failure(
-                    IllegalStateException("API returned error status: ${dto.status}, message: ${dto.message}")
-                )
-            }
-
-            val articles = dto.articles.mapNotNull { articleDto ->
-                mapToArticle(articleDto).getOrNull()
-            }
-
-            val articlesPage = ArticlesPage.create(
-                articles = articles,
-                currentPage = currentPage,
-                totalResults = dto.totalResults,
-                pageSize = pageSize
-            )
-
-            Result.success(articlesPage)
-        } catch (e: Exception) {
-            Result.failure(DataParsingException("Failed to map articles page", e))
-        }
-    }
 
     /**
      * Map ArticleDto to Article domain model

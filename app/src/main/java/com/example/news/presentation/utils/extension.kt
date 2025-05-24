@@ -1,5 +1,6 @@
 package com.example.news.presentation.utils
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Star
@@ -24,14 +25,45 @@ import com.example.news.presentation.icons.Storage
 import com.example.news.presentation.icons.TrendingUp
 import com.example.news.presentation.screens.articles.ErrorState
 
+import java.time.*
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
+
 fun formatRelativeTime(publishedAt: String): String {
-    // Sophisticated time formatting
-    return "2 hours ago" // Placeholder - implement actual logic
+    return try {
+        val publishedTime = Instant.parse(publishedAt)
+        val now = Instant.now()
+
+        val duration = Duration.between(publishedTime, now)
+
+        when {
+            duration < Duration.ofMinutes(1) -> "Just now"
+            duration < Duration.ofHours(1) -> "${duration.toMinutes()} minutes ago"
+            duration < Duration.ofDays(1) -> "${duration.toHours()} hours ago"
+            duration < Duration.ofDays(7) -> "${duration.toDays()} days ago"
+            else -> {
+                val date = LocalDateTime.ofInstant(publishedTime, ZoneId.systemDefault())
+                val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
+                date.format(formatter)
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("formatRelativeTime", "Error parsing date: $publishedAt", e)
+        publishedAt // fallback
+    }
 }
 
 fun formatDateTime(publishedAt: String): String {
-    // Implementation for date/time formatting
-    return "March 15, 2024 at 2:30 PM" // Placeholder
+    return try {
+        val instant = Instant.parse(publishedAt)
+        val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+        val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a", Locale.getDefault())
+        dateTime.format(formatter)
+    } catch (e: Exception) {
+        Log.e("formatDateTime", "Error parsing date: $publishedAt", e)
+        publishedAt // fallback
+    }
 }
 
 
@@ -51,9 +83,9 @@ fun getCategoryIcon(category: NewsCategory): ImageVector {
 @Composable
 fun getSortIcon(sortBy: SortBy): ImageVector {
     return when (sortBy) {
-        SortBy.RELEVANCY -> Icons.Rounded.TrendingUp
+        SortBy.RELEVANCY -> TrendingUp
         SortBy.POPULARITY -> Icons.Rounded.Star
-        SortBy.PUBLISHED_AT -> Icons.Outlined.Schedule
+        SortBy.PUBLISHED_AT -> Schedule
     }
 }
 

@@ -1,4 +1,4 @@
-package com.example.news.presentation.screens.articles.components
+package com.example.news.presentation.screens.articles.components.articlecard
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState

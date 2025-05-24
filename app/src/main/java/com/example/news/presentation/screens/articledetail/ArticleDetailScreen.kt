@@ -13,22 +13,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.news.presentation.screens.articledetail.components.ArticleDetailContent
-import com.example.news.presentation.screens.articledetail.components.DetailBottomBar
 import com.example.news.presentation.screens.articledetail.components.DetailTopBar
 import com.example.news.presentation.screens.articledetail.components.FullScreenImageOverlay
 import com.example.news.presentation.screens.articles.NetworkStatus
-import com.example.news.presentation.screens.articles.components.ErrorState
+import com.example.news.presentation.screens.components.ErrorState
 import com.example.news.presentation.screens.components.LoadingState
 import com.example.news.presentation.screens.components.NetworkStatusBanner
-import com.example.news.presentation.screens.components.ReadingProgressFAB
 
-/**
- * ArticleDetail Screen UI
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleDetailScreen(
-    state: ArticleDetailState, actions: ArticleDetailActions
+    state: ArticleDetailState,
+    actions: ArticleDetailActions
 ) {
     val scrollState = rememberScrollState()
 
@@ -40,27 +36,17 @@ fun ArticleDetailScreen(
         }
     }
 
-    Scaffold(topBar = {
-        DetailTopBar(
-            state = state, actions = actions, scrollProgress = if (scrollState.maxValue > 0) {
-                scrollState.value.toFloat() / scrollState.maxValue.toFloat()
-            } else 0f
-        )
-    }, bottomBar = {
-        if (state.article != null && state.hasContent) {
-            DetailBottomBar(
-                state = state, actions = actions
+    Scaffold(
+        topBar = {
+            DetailTopBar(
+                state = state,
+                actions = actions,
+                scrollProgress = if (scrollState.maxValue > 0) {
+                    scrollState.value.toFloat() / scrollState.maxValue.toFloat()
+                } else 0f
             )
         }
-    }, floatingActionButton = {
-        if (state.article != null) {
-            ReadingProgressFAB(
-                progress = state.readingProgress,
-                isBookmarked = state.isBookmarked,
-                onBookmarkClick = actions.onBookmarkClick
-            )
-        }
-    }) { paddingValues ->
+    ) { paddingValues ->
 
         Box(
             modifier = Modifier
@@ -77,18 +63,19 @@ fun ArticleDetailScreen(
                 }
 
                 state.error != null -> {
-                    com.example.news.presentation.screens.components.ErrorState(
-                        error = state.error.toString(),
+                    ErrorState(
+                        error = state.error.message,
                         onRetry = actions.onRetry,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
 
-                state.article != null -> {
+                state.articleUi != null -> {
                     ArticleDetailContent(
-                        article = state.article,
+                        article = state.articleUi,
                         fontSize = state.fontSize,
                         onReadMoreClick = actions.onReadMoreClick,
+                        onShareClick = actions.onShareClick,
                         onImageClick = { actions.onImageFullScreen(true) },
                         modifier = Modifier
                             .fillMaxSize()
@@ -98,10 +85,11 @@ fun ArticleDetailScreen(
             }
 
             // Full-screen image overlay
-            if (state.isFullScreenImage && state.article?.imageUrl != null) {
+            if (state.isFullScreenImage && state.articleUi?.imageUrl != null) {
                 FullScreenImageOverlay(
-                    imageUrl = state.article.imageUrl.value,
-                    onDismiss = { actions.onImageFullScreen(false) })
+                    imageUrl = state.articleUi.imageUrl,
+                    onDismiss = { actions.onImageFullScreen(false) }
+                )
             }
 
             // Network status indicator
@@ -118,7 +106,7 @@ fun ArticleDetailScreen(
 @Preview(name = "ArticleDetail")
 private fun ArticleDetailScreenPreview() {
     ArticleDetailScreen(
-        state = ArticleDetailState(), actions = ArticleDetailActions()
+        state = ArticleDetailState(),
+        actions = ArticleDetailActions()
     )
 }
-

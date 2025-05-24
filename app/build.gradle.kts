@@ -109,4 +109,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.androidx.navigation.compose)
+
+    // Haze glassy blur effect
+    implementation(libs.haze)
 }

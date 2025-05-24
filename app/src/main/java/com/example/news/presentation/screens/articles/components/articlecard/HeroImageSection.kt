@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,39 +27,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.transform.RoundedCornersTransformation
 import com.example.news.R
 import com.example.news.presentation.icons.Schedule
 
 @Composable
 fun HeroImageSection(
-    imageUrl: String, sourceName: String
+    imageUrl: String,
+    readTime: String,
+    sourceName: String,
+    isRecent: Boolean
 ) {
+    val context = LocalContext.current
+
     Box {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true)
-                .transformations(
-                    RoundedCornersTransformation(topLeft = 20f, topRight = 20f)
-                ).build(),
-            contentDescription = null,
+            model = ImageRequest.Builder(context)
+                .data(imageUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Article image",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().height(220.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
                 .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
-            error = painterResource(R.drawable.ic_launcher_background)
+            error = painterResource(R.drawable.ic_launcher_background),
+            placeholder = painterResource(R.drawable.ic_launcher_background)
         )
 
-        // Gradient Overlay
         Box(
-            modifier = Modifier.fillMaxWidth().height(220.dp).background(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Transparent, Color.Black.copy(alpha = 0.7f)
-                        ), startY = 100f
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.7f)
+                        ),
+                        startY = 100f
                     )
                 )
         )
 
-        // Source Badge
         Surface(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -78,10 +87,27 @@ fun HeroImageSection(
             )
         }
 
-        // Reading Time Badge
+        if (isRecent) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.9f)
+            ) {
+                Text(
+                    text = "NEW",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onError,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
+
         Surface(
             modifier = Modifier
-                .align(Alignment.TopStart)
+                .align(Alignment.BottomStart)
                 .padding(16.dp),
             shape = RoundedCornerShape(12.dp),
             color = Color.Black.copy(alpha = 0.6f)
@@ -91,14 +117,14 @@ fun HeroImageSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Schedule,
+                    imageVector = Schedule,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "3 min read",
+                    text = "$readTime min read",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White,
                     fontWeight = FontWeight.Medium

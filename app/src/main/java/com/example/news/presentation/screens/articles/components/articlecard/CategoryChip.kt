@@ -1,4 +1,4 @@
-package com.example.news.presentation.screens.articles.components
+package com.example.news.presentation.screens.articles.components.articlecard
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape

@@ -48,7 +48,7 @@ fun NewsSearchBar(
                 onExpandedChange = onActiveChange,
                 placeholder = {
                     Text(
-                        "Search articles, sources, topics...",
+                        "Search articles, sources...",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
