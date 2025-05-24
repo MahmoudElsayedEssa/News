@@ -1,4 +1,4 @@
-package com.example.souhoolatask.presentation.theme
+package com.example.news.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -1,4 +1,4 @@
-package com.example.souhoolatask.di
+package com.example.news.di
 
 import android.content.Context
 import com.example.news.BuildConfig

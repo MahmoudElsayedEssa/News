@@ -1,4 +1,4 @@
-package com.example.souhoolatask.presentation.theme
+package com.example.news.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

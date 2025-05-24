@@ -1,104 +1,29 @@
 package com.example.news.data.repository
 
+import android.util.Log
 import androidx.paging.PagingData
-import androidx.paging.map
-import com.example.news.data.local.database.NewsDatabase
-import com.example.news.data.local.mappers.EntityMapper
-import com.example.news.domain.exceptions.ApiUnknownException
-import com.example.news.domain.exceptions.NewsDomainException
 import com.example.news.data.remote.mappers.NewsDataMapper
 import com.example.news.data.remote.paging.NewsPagingFactory
-import com.example.news.data.repository.datasources.NewsLocalDataSource
-import com.example.news.data.repository.datasources.NewsRemoteDataSource
+import com.example.news.domain.exceptions.ApiUnknownException
+import com.example.news.domain.exceptions.NewsDomainException
 import com.example.news.domain.model.Article
-import com.example.news.domain.model.ArticlesPage
 import com.example.news.domain.model.Source
 import com.example.news.domain.model.enums.Country
 import com.example.news.domain.model.enums.NewsCategory
 import com.example.news.domain.model.enums.SortBy
 import com.example.news.domain.model.values.SourceId
 import com.example.news.domain.repository.NewsRepository
-import com.example.souhoolatask.utils.mapResult
+import com.example.news.utils.mapResult
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import java.net.InetAddress
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Implementation of NewsRepository using Clean Architecture principles
- * Coordinates between remote and local data sources with offline-first approach
- */
 @Singleton
 class NewsRepositoryImpl @Inject constructor(
     private val remoteDataSource: NewsRemoteDataSource,
-    private val localDataSource: NewsLocalDataSource,
-    private val pagingFactory: NewsPagingFactory,
-    private val database: NewsDatabase
+    private val pagingFactory: NewsPagingFactory
 ) : NewsRepository {
-
-    override suspend fun getTopHeadlines(
-        page: Int,
-        pageSize: Int,
-        query: String?,
-        sortBy: SortBy,
-        category: NewsCategory?,
-        country: Country?
-    ): Result<ArticlesPage> {
-        return try {
-            remoteDataSource.getTopHeadlines(
-                query = query,
-                category = category?.apiValue,
-                country = country?.code,
-                page = page,
-                pageSize = pageSize
-            ).mapResult { newsResponseDto ->
-                NewsDataMapper.mapToArticlesPage(newsResponseDto, page, pageSize).getOrThrow()
-            }
-        } catch (e: Exception) {
-            Result.failure(mapException(e))
-        }
-    }
-
-    override suspend fun searchEverything(
-        query: String,
-        page: Int,
-        pageSize: Int,
-        sortBy: SortBy,
-        sources: List<SourceId>?,
-        fromDate: String?,
-        toDate: String?
-    ): Result<ArticlesPage> {
-        return try {
-            remoteDataSource.searchEverything(
-                query = query,
-                sortBy = sortBy.apiValue,
-                sources = sources?.map { it.value },
-                from = fromDate,
-                to = toDate,
-                page = page,
-                pageSize = pageSize
-            ).mapResult { newsResponseDto ->
-                NewsDataMapper.mapToArticlesPage(newsResponseDto, page, pageSize).getOrThrow()
-            }
-        } catch (e: Exception) {
-            Result.failure(mapException(e))
-        }
-    }
-
-    override suspend fun getSources(
-        category: NewsCategory?, country: Country?
-    ): Result<List<Source>> {
-        return try {
-            remoteDataSource.getSources(
-                category = category?.apiValue, country = country?.code
-            ).mapResult { sourcesResponseDto ->
-                NewsDataMapper.mapToSources(sourcesResponseDto).getOrThrow()
-            }
-        } catch (e: Exception) {
-            Result.failure(mapException(e))
-        }
-    }
 
     override fun getTopHeadlinesPaging(
         category: NewsCategory?,
@@ -107,17 +32,14 @@ class NewsRepositoryImpl @Inject constructor(
         sortBy: SortBy,
         pageSize: Int
     ): Flow<PagingData<Article>> {
+
+        val safeCategory = category?.apiValue ?: "general" //
+        val safeCountry = country?.code ?: "us" //
+        val safeQuery = query?.takeIf { it.isNotBlank() && it.length >= 2 } //
+
         return pagingFactory.createTopHeadlinesPager(
-            category = category?.apiValue,
-            country = country?.code,
-            pageSize = pageSize
-        ).map { pagingData ->
-            pagingData.map { entity ->
-                EntityMapper.mapEntityToDomain(entity).getOrThrow()
-            }
-        }.catch {
-            emit(PagingData.empty()) // Don't crash, just show empty state
-        }
+            category = safeCategory, country = safeCountry, query = safeQuery, pageSize = pageSize
+        )
     }
 
     override fun searchArticlesPaging(
@@ -128,34 +50,59 @@ class NewsRepositoryImpl @Inject constructor(
         toDate: String?,
         pageSize: Int
     ): Flow<PagingData<Article>> {
+
+        val trimmedQuery = query.trim()
+        if (trimmedQuery.isBlank() || trimmedQuery.length < 2) {
+            throw IllegalArgumentException("Invalid search query") //
+        }
+
         return pagingFactory.createSearchPager(
-            query = query, sortBy = sortBy.apiValue, pageSize = pageSize
-        ).map { pagingData ->
-            pagingData.map { entity ->
-                EntityMapper.mapEntityToDomain(entity).getOrThrow()
+            query = trimmedQuery,
+            sortBy = sortBy.apiValue,
+            sources = sources?.map { it.value },
+            fromDate = fromDate,
+            toDate = toDate,
+            pageSize = pageSize
+        )
+    }
+
+    override suspend fun getSources(
+        category: NewsCategory?, country: Country?
+    ): Result<List<Source>> {
+        return try {
+            remoteDataSource.getSources( //
+                category = category?.apiValue, country = country?.code
+            ).mapResult { sourcesResponseDto ->
+                NewsDataMapper.mapToSources(sourcesResponseDto).getOrThrow() //
             }
-        }.catch {
-            emit(PagingData.empty())
+        } catch (e: Exception) {
+            Result.failure(mapException(e))
         }
     }
 
     override suspend fun refresh() {
-        try {
-            localDataSource.clearExpiredCache()
-        } catch (e: Exception) {
-            // Log but don't crash - this is best effort
-        }
+        Log.d(
+            "NewsRepositoryImpl",
+            "refresh() called. In network-only setup, UI should trigger PagingSource refresh."
+        )
     }
 
     override suspend fun clearCache() {
-        try {
-            database.clearAllTables()
+        Log.d(
+            "NewsRepositoryImpl",
+            "clearCache() called. No local paging cache to clear in this setup."
+        )
+    }
+
+    override suspend fun isOnline(): Boolean {
+        return try {
+            InetAddress.getByName("8.8.8.8").isReachable(5000) //
         } catch (e: Exception) {
-            // Log but don't crash
+            false
         }
     }
 
-    private fun mapException(exception: Exception): NewsDomainException {
+    private fun mapException(exception: Exception): NewsDomainException { //
         return when (exception) {
             is NewsDomainException -> exception
             else -> ApiUnknownException("Repository operation failed", exception)

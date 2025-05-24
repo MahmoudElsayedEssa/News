@@ -12,8 +12,8 @@ value class PublishedAt(val value: String) {
 
     private fun isValidIsoDate(date: String): Boolean {
         return try {
-            // Basic ISO 8601 format validation
-            date.matches(Regex("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z?"))
+            Instant.parse(date) // Let Java's parser handle validation - more flexible
+            true
         } catch (e: Exception) {
             false
         }

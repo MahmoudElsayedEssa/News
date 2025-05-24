@@ -17,41 +17,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface NewsRepository {
 
-
-    /**
-     * Get top headlines with traditional pagination - works with your existing use case
-     */
-    suspend fun getTopHeadlines(
-        page: Int,
-        pageSize: Int = DEFAULT_PAGE_SIZE,
-        query: String? = null,
-        sortBy: SortBy = SortBy.PUBLISHED_AT,
-        category: NewsCategory? = null,
-        country: Country? = null
-    ): Result<ArticlesPage>
-
-    /**
-     * Search articles with traditional pagination - for search use case
-     */
-    suspend fun searchEverything(
-        query: String,
-        page: Int,
-        pageSize: Int = DEFAULT_PAGE_SIZE,
-        sortBy: SortBy = SortBy.RELEVANCY,
-        sources: List<SourceId>? = null,
-        fromDate: String? = null,
-        toDate: String? = null
-    ): Result<ArticlesPage>
-
-    /**
-     * Get available news sources - works with your existing use case
-     */
-    suspend fun getSources(
-        category: NewsCategory? = null,
-        country: Country? = null
-    ): Result<List<Source>>
-
-
     /**
      * Get paginated top headlines with offline support (for infinite scroll UI)
      */
@@ -75,8 +40,17 @@ interface NewsRepository {
         pageSize: Int = DEFAULT_PAGE_SIZE
     ): Flow<PagingData<Article>>
 
+    /**
+     * Get available news sources
+     */
+    suspend fun getSources(
+        category: NewsCategory? = null,
+        country: Country? = null
+    ): Result<List<Source>>
 
     suspend fun refresh()
     suspend fun clearCache()
 
+    // Health check
+    suspend fun isOnline(): Boolean
 }

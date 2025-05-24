@@ -1,4 +1,4 @@
-package com.example.souhoolatask.di
+package com.example.news.di
 
 import com.example.news.data.repository.NewsRepositoryImpl
 import com.example.news.domain.repository.NewsRepository

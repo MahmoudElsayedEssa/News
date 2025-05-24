@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.news.presentation.screens.article.ArticleListRoute
+import com.example.news.presentation.screens.articles.ArticleListRoute
 import com.example.news.presentation.screens.articledetail.ArticleDetailRoute
 
 /**

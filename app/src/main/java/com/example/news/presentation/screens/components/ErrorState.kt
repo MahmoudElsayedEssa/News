@@ -74,7 +74,7 @@ fun ErrorState(
                 }
         ) {
             Icon(
-                imageVector = Icons.Outlined.CloudOff,
+                imageVector = CloudOff,
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)

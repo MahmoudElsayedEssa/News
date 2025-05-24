@@ -4,7 +4,7 @@ import com.example.news.data.DataErrorMapper
 import com.example.news.data.remote.api.NewsApiService
 import com.example.news.data.remote.dtos.NewsResponseDto
 import com.example.news.data.remote.dtos.SourcesResponseDto
-import com.example.news.data.repository.datasources.NewsRemoteDataSource
+import com.example.news.data.repository.NewsRemoteDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException

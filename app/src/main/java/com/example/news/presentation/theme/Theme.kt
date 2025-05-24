@@ -1,4 +1,6 @@
-package com.example.souhoolatask.presentation.theme
+package com.example.news.presentation.theme
+
+
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

@@ -1,9 +1,10 @@
-package com.example.souhoolatask.di
+package com.example.news.di
 
-import com.example.news.data.local.dataSource.NewsLocalDataSourceImpl
 import com.example.news.data.remote.datasource.NewsRemoteDataSourceImpl
-import com.example.news.data.repository.datasources.NewsLocalDataSource
-import com.example.news.data.repository.datasources.NewsRemoteDataSource
+import com.example.news.data.remote.dtos.ArticleDto
+import com.example.news.data.repository.NewsRemoteDataSource
+import com.example.news.data.validation.ArticleDtoValidator
+import com.example.news.data.validation.DataValidator
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -26,11 +27,9 @@ abstract class DataSourceModule {
         implementation: NewsRemoteDataSourceImpl
     ): NewsRemoteDataSource
 
-
-
     @Binds
     @Singleton
-    abstract fun bindNewsLocalDataSource(
-        implementation: NewsLocalDataSourceImpl
-    ): NewsLocalDataSource
+    abstract fun bindArticleDtoValidator(
+        implementation: ArticleDtoValidator
+    ): DataValidator<ArticleDto>
 }

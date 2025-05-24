@@ -6,7 +6,7 @@ import com.example.news.domain.model.Source
 import com.example.news.domain.model.enums.Country
 import com.example.news.domain.model.enums.NewsCategory
 import com.example.news.domain.repository.NewsRepository
-import com.example.souhoolatask.utils.mapResult
+import com.example.news.utils.mapResult
 import javax.inject.Inject
 
 /**
@@ -23,8 +23,8 @@ class GetNewsSourcesUseCase @Inject constructor(
             newsRepository.getSources(category, country)
                 .mapResult { sources ->
                     sources
-                        .distinctBy { it.name.value } // Remove duplicate names
-                        .sortedBy { it.name.value } // Sort alphabetically
+                        .distinctBy { it.name.value }
+                        .sortedBy { it.name.value }
                 }
         } catch (e: Exception) {
             Result.failure(mapException(e))

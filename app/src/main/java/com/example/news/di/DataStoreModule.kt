@@ -1,4 +1,4 @@
-package com.example.souhoolatask.di
+package com.example.news.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -14,7 +14,6 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import java.util.prefs.Preferences
 import javax.inject.Singleton
 
 /**

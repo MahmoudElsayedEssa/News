@@ -1,5 +1,7 @@
 package com.example.news.domain.model.values
 
+import kotlin.math.roundToInt
+
 @JvmInline
 value class Content(val value: String) {
 
@@ -8,7 +10,7 @@ value class Content(val value: String) {
 
     fun estimatedReadingTimeMinutes(): Int {
         val wordsPerMinute = 200
-        return maxOf(1, wordCount() / wordsPerMinute)
+        return maxOf(1, (wordCount().toDouble() / wordsPerMinute).roundToInt())
     }
 
     fun wordCount(): Int {

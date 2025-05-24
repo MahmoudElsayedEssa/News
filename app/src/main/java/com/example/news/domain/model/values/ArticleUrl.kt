@@ -1,5 +1,7 @@
 package com.example.news.domain.model.values
 
+import android.webkit.URLUtil
+
 @JvmInline
 value class ArticleUrl(val value: String) {
     init {
@@ -8,6 +10,6 @@ value class ArticleUrl(val value: String) {
     }
 
     private fun isValidUrl(url: String): Boolean {
-        return url.startsWith("http://") || url.startsWith("https://")
+        return URLUtil.isValidUrl(url)
     }
 }

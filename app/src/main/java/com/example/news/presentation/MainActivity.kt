@@ -1,11 +1,11 @@
-package com.example.souhoolatask.presentation
+package com.example.news.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.news.presentation.navigation.NewsNavigation
-import com.example.souhoolatask.presentation.theme.SouhoolaTaskTheme
+import com.example.news.presentation.theme.SouhoolaTaskTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
